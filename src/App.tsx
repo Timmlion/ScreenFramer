@@ -13,6 +13,7 @@ const modalInitialClasses = "opacity-0 scale-95";
 function App() {
   const [config, setConfig] = useState<EditorConfig>(DEFAULT_CONFIG);
   const [image, setImage] = useState<string | null>(null);
+  const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [showCoffeeModal, setShowCoffeeModal] = useState(false);
   const [dontShowAgain, setDontShowAgain] = useState(false); // State for the checkbox
@@ -26,7 +27,12 @@ function App() {
     const reader = new FileReader();
     reader.onload = (e) => {
       if (e.target?.result) {
-        setImage(e.target.result as string);
+        const img = new Image();
+        img.onload = () => {
+          setImage(e.target?.result as string);
+          setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+        };
+        img.src = e.target?.result as string;
       }
     };
     reader.readAsDataURL(file);
@@ -95,6 +101,7 @@ function App() {
       <CanvasArea
         config={config}
         image={image}
+        imageDimensions={imageDimensions} // Pass image dimensions
         onImageUpload={handleImageUpload}
         canvasRef={canvasRef}
       />

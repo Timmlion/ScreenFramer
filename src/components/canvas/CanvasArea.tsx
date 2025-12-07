@@ -7,6 +7,7 @@ import { WindowFrame } from './WindowFrame';
 interface CanvasAreaProps {
   config: EditorConfig;
   image: string | null;
+  imageDimensions: { width: number; height: number } | null; // Added imageDimensions
   onImageUpload: (file: File) => void;
   canvasRef: React.RefObject<HTMLDivElement | null>;
 }
@@ -14,6 +15,7 @@ interface CanvasAreaProps {
 export const CanvasArea: React.FC<CanvasAreaProps> = ({
   config,
   image,
+  imageDimensions, // Destructure imageDimensions
   onImageUpload,
   canvasRef,
 }) => {
@@ -71,12 +73,13 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
             style={config.windowStyle}
             radius={config.radius}
             shadow={config.shadow}
-            className="max-w-full max-h-full object-contain"
+            imageDimensions={imageDimensions} // Pass image dimensions to WindowFrame
+            className="max-w-full max-h-full" // Removed object-contain as WindowFrame handles its aspect-ratio
           >
             <img
               src={image}
               alt="Screenshot"
-              className="block w-full h-auto"
+              className="block w-full h-full object-contain" // Image itself should object-contain
             />
           </WindowFrame>
         ) : (
