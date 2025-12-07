@@ -1,0 +1,18 @@
+export const gradients = [
+  { name: 'Hyper', value: 'linear-gradient(to right, #ec4899, #8b5cf6)' },
+  { name: 'Oceanic', value: 'linear-gradient(to right, #06b6d4, #3b82f6)' },
+  { name: 'Candy', value: 'linear-gradient(to right, #f472b6, #db2777)' },
+  { name: 'Peach', value: 'linear-gradient(to right, #f97316, #db2777)' },
+  { name: 'Emerald', value: 'linear-gradient(to right, #10b981, #059669)' },
+  { name: 'Midnight', value: 'linear-gradient(to right, #1e293b, #0f172a)' },
+  { name: 'Sunset', value: 'linear-gradient(to right, #f59e0b, #ef4444)' },
+  { name: 'Lavender', value: 'linear-gradient(to right, #8b5cf6, #6366f1)' },
+  { name: 'Mint', value: 'linear-gradient(to right, #6ee7b7, #3b82f6)' },
+  { name: 'Electric', value: 'linear-gradient(to right, #facc15, #a3e635)' },
+  { name: 'Rose', value: 'linear-gradient(to right, #fb7185, #e11d48)' },
+  { name: 'Sky', value: 'linear-gradient(to right, #38bdf8, #2563eb)' },
+  { name: 'Slate', value: 'linear-gradient(to right, #64748b, #475569)' },
+  { name: 'Dracula', value: 'linear-gradient(to right, #bd93f9, #ff79c6)' },
+  { name: 'Solid Black', value: '#000000' },
+  { name: 'Solid White', value: '#ffffff' },
+];
