@@ -1,7 +1,9 @@
 import React, { useCallback } from 'react';
-import clsx from 'clsx';
+import { useDropzone } from 'react-dropzone';
 import { Upload } from 'lucide-react';
+import clsx from 'clsx';
 import { EditorConfig } from '../../utils/types';
+import { getContainerDimensions } from '../../utils/layoutLogic';
 import { WindowFrame } from './WindowFrame';
 
 interface CanvasAreaProps {
@@ -32,81 +34,27 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
     [onImageUpload]
   );
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-  };
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop: (acceptedFiles) => {
+      if (acceptedFiles?.[0]) {
+        onImageUpload(acceptedFiles[0]);
+      }
+    },
+    accept: {
+      'image/*': [],
+    },
+    noClick: !!image,
+  });
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files?.[0]) {
-      onImageUpload(e.target.files[0]);
-    }
-  };
-
-  const getContainerDimensions = () => {
-    if (!image || !imageDimensions) {
-      return {
-        width: 600,
-        height: 400,
-        style: { aspectRatio: config.aspectRatio === 'auto' ? undefined : config.aspectRatio.replace(':', '/') }
-      };
-    }
-
-    // 1. Calculate Content Size (Image + Frame Overhead)
-    const isMobile = config.windowStyle.startsWith('mobile');
-    const isNone = config.windowStyle === 'none';
-
-    // Overhead calculations
-    // Horizontal: padding (16) + borders (2) -> approx 20px. If none, 0.
-    const horizontalOverhead = isNone ? 0 : 20;
-
-    // Vertical: Header (64 mobile, 32 desktop) + padding (16) + borders (2). If none, 0.
-    let verticalOverhead = 0;
-    if (!isNone) {
-      verticalOverhead = (isMobile ? 64 : 32) + 16 + 2;
-    }
-
-    const contentWidth = imageDimensions.width + horizontalOverhead;
-    const contentHeight = imageDimensions.height + verticalOverhead;
-
-    // 2. Add User Padding
-    const minWidth = contentWidth + (config.padding * 2);
-    const minHeight = contentHeight + (config.padding * 2);
-
-    // 3. Apply Aspect Ratio
-    if (config.aspectRatio === 'auto') {
-      return { width: minWidth, height: minHeight };
-    }
-
-    // Parse ratio
-    const [w, h] = config.aspectRatio.replace(':', '/').split('/').map(Number);
-    const targetRatio = w / h;
-    const currentRatio = minWidth / minHeight;
-
-    let finalWidth = minWidth;
-    let finalHeight = minHeight;
-
-    if (currentRatio > targetRatio) {
-      // Content is wider than target ratio allows.
-      // Width is the constraint. Increase height to match ratio.
-      finalWidth = minWidth;
-      finalHeight = minWidth / targetRatio;
-    } else {
-      // Content is taller than target ratio allows.
-      // Height is the constraint. Increase width to match ratio.
-      finalHeight = minHeight;
-      finalWidth = minHeight * targetRatio;
-    }
-
-    return { width: finalWidth, height: finalHeight };
-  };
-
-  const dimensions = getContainerDimensions();
+  const dimensions = image && imageDimensions 
+    ? getContainerDimensions(imageDimensions.width, imageDimensions.height, config)
+    : { width: 600, height: 400, style: { aspectRatio: config.aspectRatio === 'auto' ? undefined : config.aspectRatio.replace(':', '/') } };
 
   return (
     <div
       className="flex-1 flex items-center justify-center bg-gray-900/50 p-8 overflow-auto min-h-0"
       onDrop={handleDrop}
-      onDragOver={handleDragOver}
+      onDragOver={(e) => e.preventDefault()}
     >
       <div
         ref={canvasRef}
