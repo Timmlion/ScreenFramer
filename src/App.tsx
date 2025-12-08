@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { toPng } from 'html-to-image';
 import clsx from 'clsx';
 import { EditorConfig, DEFAULT_CONFIG } from './utils/types';
-import { calculateInitialConfigFromImage } from './utils/layoutLogic';
+import { calculateInitialConfigFromImage, getContainerDimensions } from './utils/layoutLogic';
 import { CanvasArea } from './components/canvas/CanvasArea';
 import { Sidebar } from './components/controls/Sidebar';
 
@@ -39,36 +39,37 @@ function App() {
           setImage(e.target?.result as string);
           setImageDimensions(dimensions);
 
-          // Calculate fit zoom
-          const sidebarWidth = 320;
-          const padding = 80; // Approximate padding around canvas
-          const availableWidth = window.innerWidth - sidebarWidth - padding;
-          const availableHeight = window.innerHeight - padding;
-
-          const totalWidth = dimensions.width + config.padding * 2;
-          // Approximate header height (max of mobile/desktop) + padding
-          const totalHeight = dimensions.height + 60 + config.padding * 2;
-
-          const fitZoom = Math.min(
-            availableWidth / totalWidth,
-            availableHeight / totalHeight,
-            1 // Don't zoom in by default if it's small
-          );
-
-          // Round to nice number and ensure non-zero
-          setZoom(Math.max(0.1, Math.floor(fitZoom * 100) / 100));
-
-          // Auto-switch mode based on aspect ratio using shared logic
+          // 1. Determine new config (Mode, Aspect Ratio)
           const newConfigUpdates = calculateInitialConfigFromImage(
             dimensions.width,
             dimensions.height,
             config
           );
+          
+          const mergedConfig = { ...config, ...newConfigUpdates };
 
-          setConfig(prev => ({
-            ...prev,
-            ...newConfigUpdates
-          }));
+          // 2. Calculate final container dimensions with the new config
+          const containerDims = getContainerDimensions(
+             dimensions.width, 
+             dimensions.height, 
+             mergedConfig
+          ); // We need to import getContainerDimensions in App.tsx!
+
+          // 3. Calculate fit zoom based on FINAL container size
+          const sidebarWidth = 320;
+          const padding = 80; 
+          const availableWidth = window.innerWidth - sidebarWidth - padding;
+          const availableHeight = window.innerHeight - padding;
+
+          const fitZoom = Math.min(
+            availableWidth / containerDims.width,
+            availableHeight / containerDims.height,
+            1 
+          );
+
+          setZoom(Math.max(0.1, Math.floor(fitZoom * 100) / 100));
+
+          setConfig(mergedConfig);
         };
         img.src = e.target?.result as string;
       }
