@@ -50,6 +50,12 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
     ? getContainerDimensions(imageDimensions.width, imageDimensions.height, config)
     : { width: 600, height: 400, style: { aspectRatio: config.aspectRatio === 'auto' ? undefined : config.aspectRatio.replace(':', '/') } };
 
+  console.log('CanvasArea Debug:', {
+    configAspectRatio: config.aspectRatio,
+    imageDimensions,
+    calculatedDimensions: dimensions
+  });
+
   return (
     <div
       className="flex-1 flex items-center justify-center bg-gray-900/50 p-8 overflow-auto min-h-0"
@@ -99,7 +105,11 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
                 type="file"
                 className="hidden"
                 accept="image/*"
-                onChange={handleFileSelect}
+                onChange={(e) => {
+                  if (e.target.files && e.target.files[0]) {
+                    onImageUpload(e.target.files[0]);
+                  }
+                }}
               />
             </label>
           </div>
