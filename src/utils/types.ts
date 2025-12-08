@@ -11,6 +11,7 @@ export interface EditorConfig {
   aspectRatio: AspectRatio;
   scale: number; // 1, 2
   mode: EditorMode;
+  backgroundRadius: number; // New: Radius for the background (canvas) itself
 }
 
 export const DEFAULT_CONFIG: EditorConfig = {
@@ -22,4 +23,5 @@ export const DEFAULT_CONFIG: EditorConfig = {
   aspectRatio: 'auto',
   scale: 2,
   mode: 'desktop',
+  backgroundRadius: 0, // New default: no background radius
 };

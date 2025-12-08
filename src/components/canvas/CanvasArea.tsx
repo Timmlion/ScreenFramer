@@ -72,6 +72,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
           aspectRatio: !image && dimensions.style?.aspectRatio ? dimensions.style.aspectRatio : undefined,
           transform: `scale(${zoom})`,
           transformOrigin: 'center',
+          borderRadius: `${config.backgroundRadius}px`, // Apply background radius here
         }}
       >
         {image ? (

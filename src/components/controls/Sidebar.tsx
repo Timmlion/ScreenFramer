@@ -205,6 +205,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 className="w-full accent-indigo-500 h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer"
               />
             </div>
+            
+            {/* Background Radius */}
+            <div className="space-y-1">
+              <div className="flex justify-between text-xs">
+                <span>Background Radius</span>
+                <span className="text-gray-500">{config.backgroundRadius}px</span>
+              </div>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={config.backgroundRadius}
+                onChange={(e) => onChange({ backgroundRadius: Number(e.target.value) })}
+                className="w-full accent-indigo-500 h-1 bg-gray-800 rounded-lg appearance-none cursor-pointer"
+              />
+            </div>
           </div>
         </div>
 

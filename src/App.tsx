@@ -99,6 +99,7 @@ function App() {
       const dataUrl = await toPng(canvasRef.current, {
         cacheBust: true,
         pixelRatio: config.scale,
+        backgroundColor: null, // Set background to null for transparency
       });
       const link = document.createElement('a');
       link.download = `screenframer-${Date.now()}.png`;
