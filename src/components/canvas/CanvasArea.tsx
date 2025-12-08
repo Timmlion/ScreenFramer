@@ -10,6 +10,7 @@ interface CanvasAreaProps {
   imageDimensions: { width: number; height: number } | null; // Added imageDimensions
   onImageUpload: (file: File) => void;
   canvasRef: React.RefObject<HTMLDivElement | null>;
+  zoom: number;
 }
 
 export const CanvasArea: React.FC<CanvasAreaProps> = ({
@@ -18,6 +19,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
   imageDimensions, // Destructure imageDimensions
   onImageUpload,
   canvasRef,
+  zoom,
 }) => {
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
@@ -40,10 +42,65 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
     }
   };
 
-  const getAspectRatioStyle = () => {
-    if (config.aspectRatio === 'auto') return {};
-    return { aspectRatio: config.aspectRatio };
+  const getContainerDimensions = () => {
+    if (!image || !imageDimensions) {
+      return {
+        width: 600,
+        height: 400,
+        style: { aspectRatio: config.aspectRatio === 'auto' ? undefined : config.aspectRatio.replace(':', '/') }
+      };
+    }
+
+    // 1. Calculate Content Size (Image + Frame Overhead)
+    const isMobile = config.windowStyle.startsWith('mobile');
+    const isNone = config.windowStyle === 'none';
+
+    // Overhead calculations
+    // Horizontal: padding (16) + borders (2) -> approx 20px. If none, 0.
+    const horizontalOverhead = isNone ? 0 : 20;
+
+    // Vertical: Header (64 mobile, 32 desktop) + padding (16) + borders (2). If none, 0.
+    let verticalOverhead = 0;
+    if (!isNone) {
+      verticalOverhead = (isMobile ? 64 : 32) + 16 + 2;
+    }
+
+    const contentWidth = imageDimensions.width + horizontalOverhead;
+    const contentHeight = imageDimensions.height + verticalOverhead;
+
+    // 2. Add User Padding
+    const minWidth = contentWidth + (config.padding * 2);
+    const minHeight = contentHeight + (config.padding * 2);
+
+    // 3. Apply Aspect Ratio
+    if (config.aspectRatio === 'auto') {
+      return { width: minWidth, height: minHeight };
+    }
+
+    // Parse ratio
+    const [w, h] = config.aspectRatio.replace(':', '/').split('/').map(Number);
+    const targetRatio = w / h;
+    const currentRatio = minWidth / minHeight;
+
+    let finalWidth = minWidth;
+    let finalHeight = minHeight;
+
+    if (currentRatio > targetRatio) {
+      // Content is wider than target ratio allows.
+      // Width is the constraint. Increase height to match ratio.
+      finalWidth = minWidth;
+      finalHeight = minWidth / targetRatio;
+    } else {
+      // Content is taller than target ratio allows.
+      // Height is the constraint. Increase width to match ratio.
+      finalHeight = minHeight;
+      finalWidth = minHeight * targetRatio;
+    }
+
+    return { width: finalWidth, height: finalHeight };
   };
+
+  const dimensions = getContainerDimensions();
 
   return (
     <div
@@ -55,17 +112,18 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
         ref={canvasRef}
         className={clsx(
           'relative flex items-center justify-center transition-all duration-300 shadow-2xl overflow-hidden',
-           // If no image, we still want to show the background/canvas so user knows where to drop,
-           // but maybe with a min size.
-           !image && 'w-[600px] h-[400px]'
+          // If no image, we still want to show the background/canvas so user knows where to drop,
+          // but maybe with a min size.
+          !image && 'w-[600px] h-[400px]'
         )}
         style={{
           background: config.background,
           padding: `${config.padding}px`,
-          ...getAspectRatioStyle(),
-          // If auto, let it grow. If ratio, width 100%? No, we want it to fit in the view.
-          // For the preview, we might just let it scale naturally or max-width.
-          // But for export, we capture this div.
+          width: image ? `${dimensions.width}px` : undefined,
+          height: image ? `${dimensions.height}px` : undefined,
+          aspectRatio: !image && dimensions.style?.aspectRatio ? dimensions.style.aspectRatio : undefined,
+          transform: `scale(${zoom})`,
+          transformOrigin: 'center',
         }}
       >
         {image ? (
@@ -73,13 +131,13 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
             style={config.windowStyle}
             radius={config.radius}
             shadow={config.shadow}
-            imageDimensions={imageDimensions} // Pass image dimensions to WindowFrame
-            className="max-w-full max-h-full" // Removed object-contain as WindowFrame handles its aspect-ratio
+            imageDimensions={imageDimensions}
+          // Removed max-w-full max-h-full to allow frame to dictate size
           >
             <img
               src={image}
               alt="Screenshot"
-              className="block w-full h-full object-contain" // Image itself should object-contain
+              className="block" // Removed w-full h-full object-contain to allow natural size
             />
           </WindowFrame>
         ) : (

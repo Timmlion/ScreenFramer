@@ -14,6 +14,7 @@ function App() {
   const [config, setConfig] = useState<EditorConfig>(DEFAULT_CONFIG);
   const [image, setImage] = useState<string | null>(null);
   const [imageDimensions, setImageDimensions] = useState<{ width: number; height: number } | null>(null);
+  const [zoom, setZoom] = useState(1);
   const [isDownloading, setIsDownloading] = useState(false);
   const [showCoffeeModal, setShowCoffeeModal] = useState(false);
   const [dontShowAgain, setDontShowAgain] = useState(false); // State for the checkbox
@@ -23,14 +24,67 @@ function App() {
     setConfig((prev) => ({ ...prev, ...updates }));
   };
 
+  const handleZoomChange = (newZoom: number) => {
+    setZoom(newZoom);
+  };
+
   const handleImageUpload = (file: File) => {
     const reader = new FileReader();
     reader.onload = (e) => {
       if (e.target?.result) {
         const img = new Image();
         img.onload = () => {
+          const dimensions = { width: img.naturalWidth, height: img.naturalHeight };
           setImage(e.target?.result as string);
-          setImageDimensions({ width: img.naturalWidth, height: img.naturalHeight });
+          setImageDimensions(dimensions);
+
+          // Calculate fit zoom
+          const sidebarWidth = 320;
+          const padding = 80; // Approximate padding around canvas
+          const availableWidth = window.innerWidth - sidebarWidth - padding;
+          const availableHeight = window.innerHeight - padding;
+
+          const totalWidth = dimensions.width + config.padding * 2;
+          // Approximate header height (max of mobile/desktop) + padding
+          const totalHeight = dimensions.height + 60 + config.padding * 2;
+
+          const fitZoom = Math.min(
+            availableWidth / totalWidth,
+            availableHeight / totalHeight,
+            1 // Don't zoom in by default if it's small
+          );
+
+          // Round to nice number and ensure non-zero
+          setZoom(Math.max(0.1, Math.floor(fitZoom * 100) / 100));
+
+          // Auto-switch mode based on aspect ratio
+          const ratio = dimensions.width / dimensions.height;
+          let newMode: 'desktop' | 'mobile' | 'other' = 'other';
+          let newStyle = config.windowStyle;
+          const isDarkMode = config.windowStyle.includes('dark') || config.windowStyle === 'none' ? true : false; // heuristic
+
+          if (ratio < 0.85) {
+            newMode = 'mobile';
+            newStyle = isDarkMode ? 'mobile-dark' : 'mobile-light';
+          } else if (ratio > 1.15) {
+            newMode = 'desktop';
+            // If we were in mobile, switch to mac. If in desktop/other, keep preference or default to mac
+            if (newStyle.includes('mobile')) {
+              newStyle = isDarkMode ? 'mac-dark' : 'mac-light';
+            }
+          } else {
+            newMode = 'other';
+            // For 'other' (square-ish), we might default to none or mac, but let's stick to current or default to none if it was mobile
+            if (newStyle.includes('mobile')) {
+              newStyle = 'none';
+            }
+          }
+
+          setConfig(prev => ({
+            ...prev,
+            mode: newMode,
+            windowStyle: newStyle
+          }));
         };
         img.src = e.target?.result as string;
       }
@@ -48,7 +102,7 @@ function App() {
   const handleDownload = async () => {
     if (!canvasRef.current) return;
     setIsDownloading(true);
-    
+
     // Small delay to ensure UI is ready/clean if needed
     await new Promise(r => setTimeout(r, 100));
 
@@ -104,12 +158,15 @@ function App() {
         imageDimensions={imageDimensions} // Pass image dimensions
         onImageUpload={handleImageUpload}
         canvasRef={canvasRef}
+        zoom={zoom}
       />
       <Sidebar
         config={config}
         onChange={handleConfigChange}
         onDownload={handleDownload}
         isDownloading={isDownloading}
+        zoom={zoom}
+        onZoomChange={handleZoomChange}
       />
 
       {/* Coffee Modal */}
@@ -121,43 +178,43 @@ function App() {
           )}>
             {/* Banner */}
             <div className="h-32 bg-gradient-to-br from-[#FF6B00] to-[#FF9E00] flex items-center justify-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 mix-blend-overlay"></div>
-                <span className="text-6xl drop-shadow-lg transform hover:scale-110 transition-transform duration-300 cursor-default">☕</span>
+              <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20 mix-blend-overlay"></div>
+              <span className="text-6xl drop-shadow-lg transform hover:scale-110 transition-transform duration-300 cursor-default">☕</span>
             </div>
             {/* Content */}
             <div className="p-6 text-center">
-                <h2 className="text-2xl font-bold text-white mb-2">Enjoying LivePreview?</h2>
-                <p className="text-gray-300 mb-8 leading-relaxed">
-                    If this tool saved you some time, please consider buying me a coffee to support future updates!
-                </p>
-                
-                {/* Action Buttons */}
-                <div className="flex flex-col gap-3">
-                    <button 
-                        onClick={() => window.open('https://ko-fi.com/adamsiwek', '_blank')}
-                        className="w-full bg-[#FF6B00] hover:bg-[#e66000] text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:-translate-y-0.5 shadow-lg hover:shadow-orange-500/20 flex items-center justify-center gap-2"
-                    >
-                        <span>☕</span> Buy me a coffee
-                    </button>
-                    <button 
-                        onClick={closeCoffeeModal}
-                        className="w-full bg-transparent border border-gray-600 text-gray-400 hover:text-white hover:border-gray-500 hover:bg-gray-800/50 font-medium py-2 px-4 rounded-lg transition-colors"
-                    >
-                        Maybe later
-                    </button>
-                </div>
+              <h2 className="text-2xl font-bold text-white mb-2">Enjoying LivePreview?</h2>
+              <p className="text-gray-300 mb-8 leading-relaxed">
+                If this tool saved you some time, please consider buying me a coffee to support future updates!
+              </p>
 
-                {/* Checkbox */}
-                <div className="mt-6 flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-gray-400 transition-colors">
-                    <input 
-                        type="checkbox" 
-                        id="dont-show"
-                        checked={dontShowAgain}
-                        onChange={(e) => setDontShowAgain(e.target.checked)}
-                        className="rounded bg-gray-800 border-gray-600 text-[#FF6B00] focus:ring-[#FF6B00] cursor-pointer"
-                    />
-                    <label htmlFor="dont-show" className="cursor-pointer select-none">Don't show this again</label>
-                </div>
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => window.open('https://ko-fi.com/adamsiwek', '_blank')}
+                  className="w-full bg-[#FF6B00] hover:bg-[#e66000] text-white font-bold py-3 px-4 rounded-lg transition-all transform hover:-translate-y-0.5 shadow-lg hover:shadow-orange-500/20 flex items-center justify-center gap-2"
+                >
+                  <span>☕</span> Buy me a coffee
+                </button>
+                <button
+                  onClick={closeCoffeeModal}
+                  className="w-full bg-transparent border border-gray-600 text-gray-400 hover:text-white hover:border-gray-500 hover:bg-gray-800/50 font-medium py-2 px-4 rounded-lg transition-colors"
+                >
+                  Maybe later
+                </button>
+              </div>
+
+              {/* Checkbox */}
+              <div className="mt-6 flex items-center justify-center gap-2 text-sm text-gray-500 hover:text-gray-400 transition-colors">
+                <input
+                  type="checkbox"
+                  id="dont-show"
+                  checked={dontShowAgain}
+                  onChange={(e) => setDontShowAgain(e.target.checked)}
+                  className="rounded bg-gray-800 border-gray-600 text-[#FF6B00] focus:ring-[#FF6B00] cursor-pointer"
+                />
+                <label htmlFor="dont-show" className="cursor-pointer select-none">Don't show this again</label>
+              </div>
             </div>
           </div>
         </div>
