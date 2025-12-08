@@ -65,7 +65,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
       <div
         ref={canvasRef}
         className={clsx(
-          'relative flex items-center justify-center transition-all duration-300 shadow-2xl overflow-hidden',
+          'relative flex items-center justify-center transition-all duration-300 shadow-2xl overflow-hidden flex-shrink-0',
           // If no image, we still want to show the background/canvas so user knows where to drop,
           // but maybe with a min size.
           !image && 'w-[600px] h-[400px]'
