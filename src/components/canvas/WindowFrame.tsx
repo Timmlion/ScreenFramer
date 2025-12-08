@@ -84,11 +84,11 @@ export const WindowFrame: React.FC<WindowFrameProps> = ({
             </div>
           </div>
         ) : style.startsWith('mac') ? (
-          <>
-            <div className="w-3 h-3 rounded-full bg-[#FF5F56]" />
-            <div className="w-3 h-3 rounded-full bg-[#FFBD2E]" />
-            <div className="w-3 h-3 rounded-full bg-[#27C93F]" />
-          </>
+          <div className="flex items-center gap-2">
+            <div className="w-3.5 h-3.5 rounded-full bg-[#FF5F56]" />
+            <div className="w-3.5 h-3.5 rounded-full bg-[#FFBD2E]" />
+            <div className="w-3.5 h-3.5 rounded-full bg-[#27C93F]" />
+          </div>
         ) : style === 'win' ? (
           <div className="flex w-full justify-end space-x-2 opacity-50 text-gray-700">
             <div className="w-3 h-3 border border-current rounded-sm" />

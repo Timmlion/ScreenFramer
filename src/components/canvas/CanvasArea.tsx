@@ -39,65 +39,75 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
 
   const aspectRatioStyle = !image && 'style' in dimensions ? dimensions.style.aspectRatio : undefined;
 
+  // Calculate scaled dimensions for the wrapper
+  // dimensions.width/height are numbers coming from getContainerDimensions or the fallback object (we need to cast or access properly)
+  const actualWidth = 'width' in dimensions ? dimensions.width : 600;
+  const actualHeight = 'height' in dimensions ? dimensions.height : 400;
+
+  const scaledWidth = actualWidth * zoom;
+  const scaledHeight = actualHeight * zoom;
+
   return (
     <div
-      className="flex-1 flex items-center justify-center bg-gray-900/50 p-8 overflow-auto min-h-0"
+      className="flex-1 flex items-center justify-center bg-background p-8 overflow-auto min-h-0"
       onDrop={handleDrop}
       onDragOver={(e) => e.preventDefault()}
     >
-      <div
-        ref={canvasRef}
-        className={clsx(
-          'relative flex items-center justify-center transition-all duration-300 shadow-2xl overflow-hidden flex-shrink-0',
-          // If no image, we still want to show the background/canvas so user knows where to drop,
-          // but maybe with a min size.
-          !image && 'w-[600px] h-[400px]'
-        )}
-        style={{
-          background: config.background,
-          padding: `${config.padding}px`,
-          width: image ? `${dimensions.width}px` : undefined,
-          height: image ? `${dimensions.height}px` : undefined,
-          aspectRatio: aspectRatioStyle,
-          transform: `scale(${zoom})`,
-          transformOrigin: 'center',
-          borderRadius: `${config.backgroundRadius}px`, // Apply background radius here
-        }}
+      <div 
+        style={{ width: scaledWidth, height: scaledHeight }} 
+        className="flex-shrink-0 transition-all duration-300"
       >
-        {image ? (
-          <WindowFrame
-            style={config.windowStyle}
-            radius={config.radius}
-            shadow={config.shadow}
-            imageDimensions={imageDimensions}
-          // Removed max-w-full max-h-full to allow frame to dictate size
-          >
-            <img
-              src={image}
-              alt="Screenshot"
-              className="block" // Removed w-full h-full object-contain to allow natural size
-            />
-          </WindowFrame>
-        ) : (
-          <div className="flex flex-col items-center text-white/80 p-8 border-2 border-dashed border-white/30 rounded-xl bg-black/20 backdrop-blur-sm">
-            <Upload size={48} className="mb-4 opacity-50" />
-            <p className="text-lg font-medium mb-2">Drop your screenshot here</p>
-            <p className="text-sm opacity-60 mb-4">or paste from clipboard (Ctrl+V)</p>
-            <label className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg cursor-pointer transition-colors text-sm font-medium">
-              Browse Files
-              <input
-                type="file"
-                className="hidden"
-                accept="image/*"
-                onChange={(e) => {
-                  if (e.target.files && e.target.files[0]) {
-                    onImageUpload(e.target.files[0]);
-                  }
-                }}
+        <div
+          ref={canvasRef}
+          className={clsx(
+            'relative flex items-center justify-center shadow-2xl overflow-hidden',
+            !image && 'w-[600px] h-[400px]'
+          )}
+          style={{
+            background: config.background,
+            padding: `${config.padding}px`,
+            width: image ? `${dimensions.width}px` : undefined,
+            height: image ? `${dimensions.height}px` : undefined,
+            aspectRatio: aspectRatioStyle,
+            transform: `scale(${zoom})`,
+            transformOrigin: 'top left',
+            borderRadius: `${config.backgroundRadius}px`,
+          }}
+        >
+          {image ? (
+            <WindowFrame
+              style={config.windowStyle}
+              radius={config.radius}
+              shadow={config.shadow}
+              imageDimensions={imageDimensions}
+            >
+              <img
+                src={image}
+                alt="Screenshot"
+                className="block"
               />
-            </label>
-          </div>
-        )}
+            </WindowFrame>
+          ) : (
+            <div className="flex flex-col items-center text-text-main p-8 border-2 border-dashed border-border rounded-xl bg-surface/50 backdrop-blur-sm">
+              <Upload size={48} className="mb-4 text-text-muted opacity-50" />
+              <p className="text-lg font-medium mb-2">Drop your screenshot here</p>
+              <p className="text-sm text-text-muted opacity-60 mb-4">or paste from clipboard (Ctrl+V)</p>
+              <label className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg cursor-pointer transition-colors text-sm font-medium">
+                Browse Files
+                <input
+                  type="file"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      onImageUpload(e.target.files[0]);
+                    }
+                  }}
+                />
+              </label>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
