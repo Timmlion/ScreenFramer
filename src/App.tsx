@@ -61,29 +61,34 @@ function App() {
           const ratio = dimensions.width / dimensions.height;
           let newMode: 'desktop' | 'mobile' | 'other' = 'other';
           let newStyle = config.windowStyle;
+          let newAspectRatio = config.aspectRatio; // Start with current, but likely override
           const isDarkMode = config.windowStyle.includes('dark') || config.windowStyle === 'none' ? true : false; // heuristic
 
           if (ratio < 0.85) {
             newMode = 'mobile';
             newStyle = isDarkMode ? 'mobile-dark' : 'mobile-light';
+            newAspectRatio = '9/16';
           } else if (ratio > 1.15) {
             newMode = 'desktop';
             // If we were in mobile, switch to mac. If in desktop/other, keep preference or default to mac
             if (newStyle.includes('mobile')) {
               newStyle = isDarkMode ? 'mac-dark' : 'mac-light';
             }
+            newAspectRatio = '16/9';
           } else {
             newMode = 'other';
             // For 'other' (square-ish), we might default to none or mac, but let's stick to current or default to none if it was mobile
             if (newStyle.includes('mobile')) {
               newStyle = 'none';
             }
+            newAspectRatio = '1/1';
           }
 
           setConfig(prev => ({
             ...prev,
             mode: newMode,
-            windowStyle: newStyle
+            windowStyle: newStyle,
+            aspectRatio: newAspectRatio
           }));
         };
         img.src = e.target?.result as string;
