@@ -1,5 +1,5 @@
 import React from 'react';
-import { Coffee, Github, Twitter } from 'lucide-react';
+import { Coffee, Github } from 'lucide-react';
 
 export const Header: React.FC = () => {
   return (

@@ -1,0 +1,6 @@
+:80 {
+    root * /app/dist
+    file_server
+
+    header / X-Clacks-Overhead "GNU Terry Pratchett"
+}
