@@ -36,7 +36,7 @@ function App() {
       imageDimensions.height,
       config
     );
-    const newZoom = calculateFitZoom(containerDims.width, containerDims.height, config);
+    const newZoom = calculateFitZoom(containerDims.width, containerDims.height);
     setZoom(newZoom);
   }, [imageDimensions, config]); // Recalculate if image or config changes
 
@@ -99,7 +99,7 @@ function App() {
       const dataUrl = await toPng(canvasRef.current, {
         cacheBust: true,
         pixelRatio: config.scale,
-        backgroundColor: null, // Set background to null for transparency
+        backgroundColor: 'transparent', // Set background to transparent
       });
       const link = document.createElement('a');
       link.download = `screenframer-${Date.now()}.png`;

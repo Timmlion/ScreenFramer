@@ -11,7 +11,8 @@ const mockConfig: EditorConfig = {
     windowStyle: 'mac-dark',
     aspectRatio: 'auto',
     scale: 1,
-    mode: 'desktop'
+    mode: 'desktop',
+    backgroundRadius: 0
 };
 
 describe('calculateInitialConfigFromImage', () => {

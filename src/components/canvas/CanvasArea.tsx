@@ -1,5 +1,4 @@
 import React, { useCallback } from 'react';
-import { useDropzone } from 'react-dropzone';
 import { Upload } from 'lucide-react';
 import clsx from 'clsx';
 import { EditorConfig } from '../../utils/types';
@@ -34,21 +33,11 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
     [onImageUpload]
   );
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop: (acceptedFiles) => {
-      if (acceptedFiles?.[0]) {
-        onImageUpload(acceptedFiles[0]);
-      }
-    },
-    accept: {
-      'image/*': [],
-    },
-    noClick: !!image,
-  });
-
   const dimensions = image && imageDimensions 
     ? getContainerDimensions(imageDimensions.width, imageDimensions.height, config)
     : { width: 600, height: 400, style: { aspectRatio: config.aspectRatio === 'auto' ? undefined : config.aspectRatio.replace(':', '/') } };
+
+  const aspectRatioStyle = !image && 'style' in dimensions ? dimensions.style.aspectRatio : undefined;
 
   return (
     <div
@@ -69,7 +58,7 @@ export const CanvasArea: React.FC<CanvasAreaProps> = ({
           padding: `${config.padding}px`,
           width: image ? `${dimensions.width}px` : undefined,
           height: image ? `${dimensions.height}px` : undefined,
-          aspectRatio: !image && dimensions.style?.aspectRatio ? dimensions.style.aspectRatio : undefined,
+          aspectRatio: aspectRatioStyle,
           transform: `scale(${zoom})`,
           transformOrigin: 'center',
           borderRadius: `${config.backgroundRadius}px`, // Apply background radius here

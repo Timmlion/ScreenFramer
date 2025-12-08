@@ -1,4 +1,4 @@
-import { EditorConfig, WindowStyle, EditorMode, AspectRatio } from './types';
+import { EditorConfig, EditorMode, AspectRatio } from './types';
 
 export const calculateInitialConfigFromImage = (
   width: number,
@@ -99,8 +99,7 @@ export const getContainerDimensions = (
 
 export const calculateFitZoom = (
   containerWidth: number,
-  containerHeight: number,
-  currentConfig: EditorConfig // We need currentConfig for padding, etc.
+  containerHeight: number
 ): number => {
   const sidebarWidth = 320;
   const padding = 80; // Approximate padding around canvas
