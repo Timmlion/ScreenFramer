@@ -96,3 +96,27 @@ export const getContainerDimensions = (
 
   return { width: finalWidth, height: finalHeight };
 };
+
+export const calculateFitZoom = (
+  containerWidth: number,
+  containerHeight: number,
+  currentConfig: EditorConfig // We need currentConfig for padding, etc.
+): number => {
+  const sidebarWidth = 320;
+  const padding = 80; // Approximate padding around canvas
+
+  // These should perhaps be dynamic based on the actual parent element size
+  // but for now, we use window.innerWidth/Height assuming the main canvas area is `flex-1`
+  // and sidebar is fixed 320px.
+  const availableWidth = window.innerWidth - sidebarWidth - padding;
+  const availableHeight = window.innerHeight - padding;
+
+  const fitZoom = Math.min(
+    availableWidth / containerWidth,
+    availableHeight / containerHeight,
+    1 // Don't zoom in by default if it's small
+  );
+
+  return Math.max(0.1, Math.floor(fitZoom * 100) / 100);
+};
+

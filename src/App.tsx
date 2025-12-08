@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { toPng } from 'html-to-image';
 import clsx from 'clsx';
 import { EditorConfig, DEFAULT_CONFIG } from './utils/types';
-import { calculateInitialConfigFromImage, getContainerDimensions } from './utils/layoutLogic';
+import { calculateInitialConfigFromImage, getContainerDimensions, calculateFitZoom } from './utils/layoutLogic';
 import { CanvasArea } from './components/canvas/CanvasArea';
 import { Sidebar } from './components/controls/Sidebar';
 
@@ -24,6 +24,30 @@ function App() {
   const handleConfigChange = (updates: Partial<EditorConfig>) => {
     setConfig((prev) => ({ ...prev, ...updates }));
   };
+
+  const updateFitZoom = useCallback(() => {
+    if (!imageDimensions) {
+      setZoom(1); // Default zoom if no image
+      return;
+    }
+
+    const containerDims = getContainerDimensions(
+      imageDimensions.width,
+      imageDimensions.height,
+      config
+    );
+    const newZoom = calculateFitZoom(containerDims.width, containerDims.height, config);
+    setZoom(newZoom);
+  }, [imageDimensions, config]); // Recalculate if image or config changes
+
+  // Recalculate zoom when relevant config or image dimensions change
+  useEffect(() => {
+    updateFitZoom();
+    // Also recalculate on window resize
+    window.addEventListener('resize', updateFitZoom);
+    return () => window.removeEventListener('resize', updateFitZoom);
+  }, [updateFitZoom]);
+
 
   const handleZoomChange = (newZoom: number) => {
     setZoom(newZoom);
@@ -47,29 +71,9 @@ function App() {
           );
           
           const mergedConfig = { ...config, ...newConfigUpdates };
-
-          // 2. Calculate final container dimensions with the new config
-          const containerDims = getContainerDimensions(
-             dimensions.width, 
-             dimensions.height, 
-             mergedConfig
-          ); // We need to import getContainerDimensions in App.tsx!
-
-          // 3. Calculate fit zoom based on FINAL container size
-          const sidebarWidth = 320;
-          const padding = 80; 
-          const availableWidth = window.innerWidth - sidebarWidth - padding;
-          const availableHeight = window.innerHeight - padding;
-
-          const fitZoom = Math.min(
-            availableWidth / containerDims.width,
-            availableHeight / containerDims.height,
-            1 
-          );
-
-          setZoom(Math.max(0.1, Math.floor(fitZoom * 100) / 100));
-
+          
           setConfig(mergedConfig);
+          // Zoom will be updated by useEffect after config state update
         };
         img.src = e.target?.result as string;
       }
