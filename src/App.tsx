@@ -100,6 +100,7 @@ function App() {
         cacheBust: true,
         pixelRatio: config.scale,
         backgroundColor: 'transparent', // Set background to transparent
+        style: { transform: 'none' }, // Reset zoom for export to capture full size without scaling
       });
       const link = document.createElement('a');
       link.download = `screenframer-${Date.now()}.png`;
